@@ -14,7 +14,7 @@
 * 🎮 **Action-Driven World Control:** Responds to user actions in real time, enabling continuous exploration instead of passive video playback.
 * ⚡ **Real-Time Desktop Inference:** Runs at 720p and 16 FPS on a single NVIDIA RTX 5090 desktop GPU, with 1.2s latency and 19GB GPU memory.
 * ♾️ **Infinite World Rollout:** Supports open-ended interactive world generation beyond fixed video-length limits.
-* 🧠 **Open-Ended World Imagination:** Expands the world with new scenes and dynamics during rollout, avoiding scene lock-in, without prompt switching.
+* 🧠 **Open-Ended World Imagination:** Expands the world with new scenes and dynamics during rollout, avoiding scene lock-in, without prompt switching, by our *LongForcing* training.
 
 ## 📢 News
 - 2026-07-09: We release the causal student model `ABot-World-0-5B-LF`, inference code, our local gradio demo and online playground [ABot World Studio](https://abot-world.amap.com).
@@ -40,9 +40,18 @@ pip install -r requirements.txt
 
 3. Download checkpoints:
 
+Download models using HuggingFace:
+
 ```bash
 pip install -U "huggingface_hub"
-hf download <HF_REPO_ID> --local-dir checkpoints
+hf download acvlab/ABot-World-0-5B-LF --local-dir ./checkpoints/ABot-World-0-5B-LF
+```
+
+Download models using ModelScope:
+
+```bash
+pip install -U "modelscope"
+modelscope download "amap_cvlab/ABot-World-0-5B-LF" --local_dir ./checkpoints/ABot-World-0-5B-LF
 ```
 
 After downloading, the project should have the following checkpoint structure:
@@ -62,9 +71,6 @@ The checkpoint paths are configured in `configs/long_forcing_dmd.yaml` and
 merged into `ABot-World-0-5B-LF/diffusion_pytorch_model.safetensors`.
 
 ## 🤗 Gradio Demo
-
-1. Run the demo online: 此处预留hf demo 链接
-2. Run it locally:
 
 ```bash
 bash web_client/run.sh
