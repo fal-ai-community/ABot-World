@@ -1,0 +1,272 @@
+/* web_client/key_hud.css — WASD / IJKL：按键黑框 + 主霓虹青外光晕；标题等仍用强调色 */
+
+/* Hidden textbox bridge — keeps Gradio element invisible */
+.key-state-hidden { display: none !important; }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §1  HUD CSS VARIABLES
+   ══════════════════════════════════════════════════════════════════════════════ */
+.gradio-container .key-hud {
+    --cp-hud-bg:       var(--cp-bg-card, #0c0618);
+    /* 按键面：比卡片亮一档，与 theme --cp-bg-ele（可交互控件层）一致 */
+    --cp-hud-key-bg:   var(--cp-bg-ele, #14122a);
+    --cp-hud-key-pressed-bg: #ffffff;
+    --cp-hud-border:   var(--cp-border, #1a4678);
+    --cp-hud-text:     var(--cp-text, #c8f4ff);
+    --cp-hud-muted:    var(--cp-text-dm, #4dc4dc);
+
+    /* 两侧 HUD 共用：标题、边框、光晕、按键按下 */
+    --cp-hud-accent:     var(--cp-neon-cy, #05d9e8);
+    --cp-hud-accent-rgb: var(--cp-neon-cy-rgb, 5, 217, 232);
+    --cp-hud-accent-dim: rgba(var(--cp-hud-accent-rgb), 0.25);
+
+    --cp-hud-frame-border: rgba(var(--cp-hud-accent-rgb), 0.45);
+    --cp-hud-frame-glow:   rgba(var(--cp-hud-accent-rgb), 0.18);
+    --cp-hud-frame-inset:  rgba(var(--cp-hud-accent-rgb), 0.05);
+
+    --cp-hud-key-size:     50px;
+    --cp-hud-pad-y:        20px;
+    --cp-hud-pad-x:        18px;
+
+    /* 按键：黑框 + 主霓虹青外光晕（与 theme / CAM 面板同源） */
+    --cp-hud-key-border: #000000;
+    --cp-hud-key-shadow-rest:
+        0 0 3px rgba(var(--cp-hud-accent-rgb), 0.55),
+        0 0 10px rgba(var(--cp-hud-accent-rgb), 0.28),
+        0 0 20px rgba(var(--cp-hud-accent-rgb), 0.12);
+    --cp-hud-key-shadow-active:
+        0 0 6px rgba(var(--cp-hud-accent-rgb), 0.85),
+        0 0 18px rgba(var(--cp-hud-accent-rgb), 0.5),
+        0 0 32px rgba(var(--cp-hud-accent-rgb), 0.22),
+        inset 0 0 10px rgba(var(--cp-hud-accent-rgb), 0.22);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §2  KEYFRAME ANIMATIONS — 共用一套按下 / 松开
+   ══════════════════════════════════════════════════════════════════════════════ */
+@keyframes cp-key-press-hud {
+    0%   { transform: scale(1);    box-shadow: var(--cp-hud-key-shadow-rest); }
+    30%  { transform: scale(0.86); border-color: var(--cp-hud-key-border);
+           box-shadow: 0 0 8px rgba(var(--cp-hud-accent-rgb), 0.95),
+                       0 0 28px rgba(var(--cp-hud-accent-rgb), 0.55),
+                       0 0 48px rgba(var(--cp-hud-accent-rgb), 0.25); }
+    100% { transform: scale(1);    border-color: var(--cp-hud-key-border);
+           box-shadow: var(--cp-hud-key-shadow-active); }
+}
+
+@keyframes cp-key-release-hud {
+    0%   { transform: scale(1); background: var(--cp-hud-key-pressed-bg);
+           border-color: var(--cp-hud-key-border); color: var(--cp-hud-accent);
+           box-shadow: var(--cp-hud-key-shadow-active); }
+    100% { transform: scale(1); background: var(--cp-hud-key-bg);
+           border-color: var(--cp-hud-key-border); color: var(--cp-hud-text);
+           box-shadow: var(--cp-hud-key-shadow-rest); }
+}
+
+/* 窄侧栏：略小按键与内边距 */
+.key-hud.key-hud--compact {
+    --cp-hud-key-size: 42px;
+    --cp-hud-pad-y: 14px;
+    --cp-hud-pad-x: 12px;
+}
+
+.key-hud.key-hud--compact .key-group-label {
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+/* 与中间 Prompt+按钮列等高：在外层 flex 容器内拉满高度，按键区垂直居中 */
+.key-hud.key-hud--fill-height {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    max-width: 220px !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+    justify-content: center !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §3  HUD CONTAINER
+   ══════════════════════════════════════════════════════════════════════════════ */
+.key-hud {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--cp-hud-pad-y) var(--cp-hud-pad-x);
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 19px,
+            rgba(var(--cp-hud-accent-rgb), 0.03) 19px,
+            rgba(var(--cp-hud-accent-rgb), 0.03) 20px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 19px,
+            rgba(var(--cp-hud-accent-rgb), 0.02) 19px,
+            rgba(var(--cp-hud-accent-rgb), 0.02) 20px
+        ),
+        var(--cp-hud-bg);
+    border: 1px solid var(--cp-hud-frame-border);
+    border-radius: 2px;
+    box-shadow: 0 0 10px var(--cp-hud-frame-glow),
+                inset 0 0 15px var(--cp-hud-frame-inset);
+    clip-path: polygon(
+        10px 0%, 100% 0%, 100% calc(100% - 10px),
+        calc(100% - 10px) 100%, 0% 100%, 0% 10px
+    );
+    font-family: 'Orbitron', 'JetBrains Mono', monospace;
+    user-select: none;
+    position: relative;
+}
+
+/* HUD — inner edge lines (top + bottom neon accents) */
+.key-hud::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 15px;
+    right: 5px;
+    height: 1px;
+    background: linear-gradient(90deg,
+        rgba(var(--cp-hud-accent-rgb), 0.5) 0%, rgba(var(--cp-hud-accent-rgb), 0.15) 60%, transparent 100%);
+    pointer-events: none;
+}
+
+.key-hud::after {
+    content: "";
+    position: absolute;
+    bottom: 4px;
+    left: 5px;
+    right: 15px;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%, rgba(var(--cp-hud-accent-rgb), 0.15) 40%, rgba(var(--cp-hud-accent-rgb), 0.5) 100%);
+    pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §4  GROUP LABELS — 「移动」「视角」同色
+   ══════════════════════════════════════════════════════════════════════════════ */
+.key-hud .key-group-label {
+    font-size: 12px;
+    margin-bottom: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--cp-hud-accent);
+    text-shadow: 0 0 8px rgba(var(--cp-hud-accent-rgb), 0.6);
+    position: relative;
+    padding-bottom: 6px;
+}
+
+/* Neon underline beneath group labels */
+.key-hud .key-group-label::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%, var(--cp-hud-accent) 30%, var(--cp-hud-accent) 70%, transparent 100%);
+    box-shadow: 0 0 6px rgba(var(--cp-hud-accent-rgb), 0.4);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §5  KEY ROWS & SPACERS
+   ══════════════════════════════════════════════════════════════════════════════ */
+.key-row {
+    display: flex;
+    gap: 8px;
+    position: relative;
+}
+
+/* Subtle side accent tick marks on each key row */
+.key-row::before {
+    content: "";
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background: rgba(var(--cp-hud-accent-rgb), 0.15);
+    border-radius: 1px;
+}
+
+.key-row::after {
+    content: "";
+    position: absolute;
+    right: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background: rgba(var(--cp-hud-accent-rgb), 0.15);
+    border-radius: 1px;
+}
+
+.key-spacer {
+    width: var(--cp-hud-key-size);
+    height: var(--cp-hud-key-size);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §6  KEY BUTTONS
+   ══════════════════════════════════════════════════════════════════════════════ */
+.key-btn {
+    width: var(--cp-hud-key-size);
+    height: var(--cp-hud-key-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--cp-hud-key-border);
+    border-radius: 2px;
+    clip-path: polygon(
+        5px 0%, 100% 0%, 100% calc(100% - 5px),
+        calc(100% - 5px) 100%, 0% 100%, 0% 5px
+    );
+    background: var(--cp-hud-key-bg);
+    color: var(--cp-hud-text);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    box-shadow: var(--cp-hud-key-shadow-rest);
+    transition: background 0.12s, border-color 0.12s, box-shadow 0.12s, color 0.12s;
+    cursor: default;
+}
+
+.key-hud .key-btn.active {
+    background: var(--cp-hud-key-pressed-bg);
+    border-color: var(--cp-hud-key-border);
+    border-width: 1px;
+    color: var(--cp-hud-accent);
+    font-weight: bold;
+    box-shadow: var(--cp-hud-key-shadow-active);
+    animation: cp-key-press-hud 0.15s ease-out forwards;
+}
+
+.key-hud .key-btn.releasing {
+    animation: cp-key-release-hud 0.2s ease-out forwards;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §7  HUD density cleanup (keep only outer frame + key active glow)
+   ══════════════════════════════════════════════════════════════════════════════════════ */
+.key-hud {
+    /* Remove HUD internal grid texture layers added earlier */
+    background: var(--cp-hud-bg) !important;
+}
+
+.key-hud::before,
+.key-hud::after,
+.key-row::before,
+.key-row::after,
+.key-hud .key-group-label::after {
+    content: none !important;
+    display: none !important;
+}

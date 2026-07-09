@@ -1,49 +1,105 @@
-# 🌍 ABot-World: Real-Time Interactive World Simulation on a Single Desktop GPU
+# 🌍 ABot-World: Infinite Interactive World Rollout on Single Desktop GPU
 
 [![Project](https://img.shields.io/badge/🌐%20%20Project-ABot%20%20World-blue.svg)](https://amap-cvlab.github.io/ABot-World/)
+[![Studio](https://img.shields.io/badge/🎮%20%20Studio-ABot%20%20World%20%20Studio-green.svg)](https://abot-world.amap.com)
 [![Paper](https://img.shields.io/badge/Arxiv-Coming_Soon-red)](#)
-[![Code](https://img.shields.io/badge/Code-Coming_Soon-181717.svg?logo=GitHub)](https://github.com/amap-cvlab/ABot-World)
-[![Model](https://img.shields.io/badge/Weights-Coming_Soon-yellow)](#)
+[![Code](https://img.shields.io/badge/Code-GitHub-181717.svg?logo=GitHub)](https://github.com/amap-cvlab/ABot-World)
+[![Model](https://img.shields.io/static/v1?label=%F0%9F%A4%97%20Model&message=HuggingFace&color=yellow)](https://huggingface.co/acvlab/ABot-World-0-5B-LF)
+[![Model](https://img.shields.io/static/v1?label=%F0%9F%A4%96%20Model&message=ModelScope&color=purple)](https://modelscope.cn/models/amap_cvlab/ABot-World-0-5B-LF)
 
-> **TL;DR:** ABot-World is a next-generation Action-Conditioned World Model that achieves **real-time interactive inference on a single consumer-grade Desktop GPU**.
-
-We are currently preparing the technical report, code, and model weights for public release. In the meantime, explore our interactive demos below.
+> **TL;DR:** ABot-World turns a single NVIDIA RTX 5090 desktop GPU into a real-time interactive world simulator, enabling infinite action-conditioned world rollout at 720P, 16 FPS, 1.2s latency, and 19GB GPU memory.
 
 ## 🚀 Key Highlights
 
-* ⚡ **Real-Time Desktop Inference:** Breaking the latency barrier. Through highly optimized inference architecture and compute-efficient scaling, ABot-World enables fluid, real-time rollout generation on a single desktop GPU. You no longer need a data center to simulate the world.
-* 🧠 **Native Spatial Intelligence**: To capture the infinite variations of the physical world, ABot-World extracts robust spatial structures and complex dynamics implicitly. By natively embedding physical priors into its generation process, it seamlessly unifies visual rendering and physical simulation within the latent space.
-* ♾️ **Long-Horizon Consistency:** Exposure bias and compounding errors have long plagued auto-regressive generation. By introducing a novel Parametric Memory module that acts as a global state sink, ABot-World maintains strict spatial topology and physical consistency over extraordinarily long rollouts.
-* 🏆 **Top-Tier Physical Reasoning:** Evaluated against state-of-the-art models, ABot-World achieves top-tier performance on industry-standard benchmarks including [**VBench 2.0**](https://huggingface.co/spaces/Vchitect/VBench_Leaderboard) (annouced by [ABot-World v0.1](https://github.com/amap-cvlab/ABot-World)), [**WorldArena**](https://huggingface.co/spaces/WorldArena/WorldArena) & [**GigaBran**](https://huggingface.co/spaces/open-gigaai/CVPR-2026-WorldModel-Track-LeaderBoard) (announced by [ABot-PhysWorld](https://huggingface.co/spaces/WorldArena/WorldArena)) and [**WorldScore**](https://huggingface.co/spaces/Howieeeee/WorldScore_Leaderboard) (announced by [FantasyWorld 1.0](https://fantasy-amap.github.io/fantasy-world/)), particularly excelling in physics adherence and dynamic motion quality.
+* 🎮 **Action-Driven World Control:** Responds to user actions in real time, enabling continuous exploration instead of passive video playback.
+* ⚡ **Real-Time Desktop Inference:** Runs at 720p and 16 FPS on a single NVIDIA RTX 5090 desktop GPU, with 1.2s latency and 19GB GPU memory.
+* ♾️ **Infinite World Rollout:** Supports open-ended interactive world generation beyond fixed video-length limits.
+* 🧠 **Open-Ended World Imagination:** Expands the world with new scenes and dynamics during rollout, avoiding scene lock-in, without prompt switching.
 
-## 🕹️ Interactive Demonstrations
+## 📢 News
+- 2026-07-09: We release the causal student model `ABot-World-0-5B-LF`, inference code, our local gradio demo and online playground [ABot World Studio](https://abot-world.amap.com).
 
-### 1. Open World Exploration
-Experience fluid and consistent generation as you interact with the environment. Whether navigating via first-person camera adjustments or driving a character through diverse scenes, the simulation responds dynamically to your inputs. The model natively understands spatial depth, object permanence, and complex environmental interactions, delivering an immersive experience from any viewpoint.
+## 🛠️ Setup
 
-*<img src="assets/gifs/open-world-exploration-main.gif" width="800" alt="More Open World Exploration Demo">*
+> This installation was tested on: Ubuntu 22.04, CUDA 13.3, NVIDIA RTX 5090.
 
-#### More Demos
-*<img src="assets/gifs/open-world-exploration.gif" width="800" alt="More Open World Exploration Demo">*
+1. Clone the repository:
 
-### 2. Long-Horizon World Exploration via a single Desktop GPU
-A continuous, uninterrupted rollout showcasing the power of our Parametric Memory. Through a highly compute-efficient architecture, ABot-World sustains strict global state topology and physical consistency over extended durations, generating expansive environments locally on a single Desktop GPU.
+```bash
+git clone https://github.com/amap-cvlab/ABot-World.git
+cd ABot-World
+```
 
-*<img src="assets/gifs/long-horizon.gif" width="800" alt="Long Horizon World Exploration Demo">*
+2. Install dependencies using conda:
 
-🔗 **[Explore our previous work FantasyWorld](https://fantasy-amap.github.io/fantasy-world/)**
+```bash
+conda create -n aworld python=3.12 -y
+conda activate aworld
+pip install -r requirements.txt
+```
 
-### 3. Embodied Interaction & Physics Alignment (ABot-PhysWorld)
-A specialized variant of our foundation model, **ABot-PhysWorld**, focuses on robotic manipulation. It uses a novel DPO-based post-training framework with decoupled discriminators to actively suppress unphysical behaviors like object penetration and anti-gravity motion. A parallel context block enables precise spatial action injection for cross-embodiment control.
+3. Download checkpoints:
 
-🔗 **[Explore the ABot-PhysWorld Repository](https://github.com/amap-cvlab/ABot-PhysWorld)**
+```bash
+pip install -U "huggingface_hub"
+hf download <HF_REPO_ID> --local-dir checkpoints
+```
+
+After downloading, the project should have the following checkpoint structure:
+
+```text
+checkpoints/
+└── ABot-World-0-5B-LF/
+    ├── Wan2.2_VAE.pth
+    ├── taew2_2.pth
+    ├── models_t5_umt5-xxl-enc-bf16.pth
+    ├── diffusion_pytorch_model.safetensors
+    └── google/umt5-xxl/
+```
+
+The checkpoint paths are configured in `configs/long_forcing_dmd.yaml` and
+`configs/default_config.yaml`. The distilled generator weights are already
+merged into `ABot-World-0-5B-LF/diffusion_pytorch_model.safetensors`.
+
+## 🤗 Gradio Demo
+
+1. Run the demo online: 此处预留hf demo 链接
+2. Run it locally:
+
+```bash
+bash web_client/run.sh
+```
+
+Select a GPU with:
+
+```bash
+CUDA_ID=0 bash web_client/run.sh
+```
+
+## License
+
+This project is released under the Apache License 2.0. See `LICENSE`, `NOTICE`,
+and `THIRD_PARTY_NOTICES.md` for copyright and third-party attribution details.
+
+## 🤝 Acknowledgement
+
+This project builds on and is inspired by the following open-source projects: [Causal Forcing](https://github.com/thu-ml/Causal-Forcing), [AngelSlim](https://github.com/tencent/AngelSlim), [LightX2V](https://github.com/ModelTC/LightX2V), [taehv](https://github.com/madebyollin/taehv), [Wan2.2](https://github.com/Wan-Video/Wan2.2), [Helios](https://github.com/PKU-YuanGroup/Helios), from which the optimized Triton RoPE and normalization kernels in `wan/modules/helios_kernels` are derived.
 
 ## 🗓️ Roadmap
-- [x] Teaser & Demo Release
+- [x] Interactive Web Playground (ABot World Studio)
+- [x] Inference Code Release
+- [x] Local Gradio Demo Release
+- [x] Causal Student Model Release
+- [ ] Bidirectional Teacher Model Release
 - [ ] Technical Report (Arxiv)
-- [ ] Inference Code Release
-- [ ] Model Weights (Open Source)
-- [ ] Interactive Web Playground
 
 ## 📝 Citation
-If you find our work helpful, please stay tuned for our upcoming paper.
+If you find our work helpful, please cite our paper:
+
+```
+@article{abot-world-0,
+      title={ABot-World-0: Real-Time Interactive World Simulation on a Single Desktop GPU}, 
+      author={ABot-World Team},
+      year={2026}
+}
+```

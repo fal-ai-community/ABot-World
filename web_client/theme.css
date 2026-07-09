@@ -1,0 +1,1874 @@
+/* web_client/theme.css — CYBERPUNK NEON Theme for ABot-World
+ * Palette: magenta #ff2a6d · cyan #00ffff · bright blue #33c5ff
+ *          green #00ff88 · yellow #ffff00
+ * Background: deep void with scanline + radial neon halos
+ */
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §0  GOOGLE FONTS — 使用 CSS @import 在 gradio 容器内加载
+   ══════════════════════════════════════════════════════════════════════════════ */
+@import url("https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;500;600;700&family=Share+Tech+Mono&family=ZCOOL+QingKe+HuangYou&display=swap");
+
+/* 注意: Gradio 会将 CSS 注入到 shadow DOM，需要使用 CSS 变量方式使用字体 */
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §1  CYBERPUNK COLOR SYSTEM + BACKGROUND (INTENSE CYBERPUNK)
+   ══════════════════════════════════════════════════════════════════════════════ */
+.gradio-container {
+    --cp-radius: 2px;
+    --cp-clip-btn: polygon(8px 0%, 100% 0%, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0% 100%, 0% 8px);
+
+    /* ── Core palette — darker background ────────────────────────────────────── */
+    --cp-bg:          #001b4a;
+    --cp-bg-card:     #002a63;
+    --cp-bg-ele:      #00347a;
+    --cp-neon-pk:     #ff2a6d;
+    --cp-neon-cy:     #05d9e8;
+    --cp-neon-pr:     #33c5ff;
+    --cp-neon-gn:     #00ff88;
+    --cp-neon-yw:     #ffff00;
+    --cp-neon-pk-dark: #0a88e0;
+
+    --cp-neon-pk-rgb:       255, 42, 109;
+    --cp-neon-cy-rgb:       5, 217, 232;
+    --cp-neon-pr-rgb:       51, 197, 255;
+    --cp-neon-gn-rgb:       0, 255, 136;
+    --cp-neon-yw-rgb:       255, 255, 0;
+    --cp-neon-pk-dark-rgb:  10, 136, 224;
+
+    --cp-text:        #ffffff;
+    --cp-text-muted-neon: #6ed8ef;
+    --cp-text-dm:       #b2f0ff;
+
+    --body-text-color:         var(--cp-text);
+    --body-text-color-subdued: var(--cp-text-muted-neon);
+    --block-info-text-color:   var(--cp-neon-pr);
+    --block-label-text-color:  var(--cp-neon-cy);
+    --block-title-text-color:  var(--cp-neon-pr);
+
+    --cp-border:      #1a4678;
+
+    --cp-glow-pk:
+        0 0 20px  rgba(var(--cp-neon-pk-rgb), 0.9),
+        0 0 50px rgba(var(--cp-neon-pk-rgb), 0.6),
+        0 0 100px rgba(var(--cp-neon-pk-rgb), 0.4),
+        0 0 200px rgba(var(--cp-neon-pk-rgb), 0.2);
+    --cp-glow-cy:
+        0 0 20px  rgba(var(--cp-neon-cy-rgb), 0.9),
+        0 0 50px rgba(var(--cp-neon-cy-rgb), 0.6),
+        0 0 100px rgba(var(--cp-neon-cy-rgb), 0.4),
+        0 0 200px rgba(var(--cp-neon-cy-rgb), 0.2);
+    --cp-glow-pr:
+        0 0 24px  rgba(var(--cp-neon-pr-rgb), 0.95),
+        0 0 60px rgba(var(--cp-neon-pr-rgb), 0.65),
+        0 0 120px rgba(var(--cp-neon-pr-rgb), 0.45),
+        0 0 240px rgba(var(--cp-neon-pr-rgb), 0.25);
+
+    /* ── Background: deep void + scanlines + grid + neon halos ──────────────── */
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 1px,
+            rgba(var(--cp-neon-cy-rgb), 0.045) 1px,
+            rgba(var(--cp-neon-cy-rgb), 0.045) 2px
+        ),
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 79px,
+            rgba(var(--cp-neon-cy-rgb), 0.055) 79px,
+            rgba(var(--cp-neon-cy-rgb), 0.055) 80px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 79px,
+            rgba(var(--cp-neon-pr-rgb), 0.04) 79px,
+            rgba(var(--cp-neon-pr-rgb), 0.04) 80px
+        ),
+        radial-gradient(ellipse at 5% 5%, rgba(var(--cp-neon-pk-rgb), 0.16) 0%, transparent 40%),
+        radial-gradient(ellipse at 95% 95%, rgba(var(--cp-neon-cy-rgb), 0.40) 0%, transparent 40%),
+        radial-gradient(ellipse at 50% 50%, rgba(var(--cp-neon-cy-rgb), 0.10) 0%, transparent 60%),
+        var(--cp-bg) !important;
+    font-family: 'Orbitron', 'Share Tech Mono', monospace !important;
+    color: var(--cp-text) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §2  ANIMATIONS
+   ══════════════════════════════════════════════════════════════════════════════ */
+/* Neon pulse breath — for header glow line */
+@keyframes cp-pulse {
+    0%, 100% { opacity: 1;    filter: brightness(1);   }
+    50%      { opacity: 0.82; filter: brightness(1.2);  }
+}
+
+/* Border color flow — thicker magenta ↔ cyan (video container) */
+@keyframes cp-border-flow {
+    0%   { border-color: var(--cp-neon-pk);
+           border-width: 3px;
+           box-shadow: 0 0 15px rgba(255,42,109,0.7), 0 0 40px rgba(255,42,109,0.4),
+                       0 0 80px rgba(255,42,109,0.2), 0 0 150px rgba(255,42,109,0.1),
+                       inset 0 0 50px rgba(255,42,109,0.06); }
+    50%  { border-color: var(--cp-neon-cy);
+           border-width: 3px;
+           box-shadow: 0 0 15px rgba(5,217,232,0.7), 0 0 40px rgba(5,217,232,0.4),
+                       0 0 80px rgba(5,217,232,0.2), 0 0 150px rgba(5,217,232,0.1),
+                       inset 0 0 50px rgba(5,217,232,0.06); }
+    100% { border-color: var(--cp-neon-pk);
+           border-width: 3px;
+           box-shadow: 0 0 15px rgba(255,42,109,0.7), 0 0 40px rgba(255,42,109,0.4),
+                       0 0 80px rgba(255,42,109,0.2), 0 0 150px rgba(255,42,109,0.1),
+                       inset 0 0 50px rgba(255,42,109,0.06); }
+}
+
+/* Subtle neon flicker — simulates unstable neon tube */
+@keyframes cp-flicker {
+    0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100%
+        { opacity: 1; }
+    20%, 21.999%, 63%, 63.999%, 65%, 69.999%
+        { opacity: 0.82; }
+}
+
+/* Header glow line shimmer */
+@keyframes cp-line-shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position:  200% center; }
+}
+
+/* Vertical scan line sweeping left→right */
+@keyframes cp-scanline-h {
+    0%   { left: -4px; opacity: 0; }
+    5%   { opacity: 1; }
+    95%  { opacity: 1; }
+    100% { left: 100%; opacity: 0; }
+}
+
+/* Horizontal scan line sweeping top→bottom */
+@keyframes cp-scanline-v {
+    0%   { top: -2px; opacity: 0; }
+    5%   { opacity: 1; }
+    95%  { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+
+/* Corner bracket pulse */
+@keyframes cp-corner-pulse {
+    0%, 100% { opacity: 0.6; }
+    50%      { opacity: 1; }
+}
+
+/* Video pillars — horizontal flowing shimmer + tube breath */
+@keyframes fe-pillar-flow-h {
+    0%   { background-position: 0% 50%, 50% 50%; }
+    100% { background-position: 100% 50%, 50% 50%; }
+}
+
+@keyframes fe-neon-pillar-pulse {
+    0%, 100% {
+        opacity: 0.72;
+        filter: brightness(1);
+    }
+    50% {
+        opacity: 0.94;
+        filter: brightness(1.18);
+    }
+}
+
+/* Circuit trace dash march */
+@keyframes cp-dash-march {
+    to { stroke-dashoffset: -40; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §3  GLOBAL OVERRIDES — blocks, panels, backgrounds
+   ══════════════════════════════════════════════════════════════════════════════ */
+.gradio-container .wrap,
+.gradio-container .panel,
+.gradio-container [class*="block"] {
+    background: var(--cp-bg) !important;
+    border: 1px solid var(--cp-border) !important;
+    border-radius: var(--cp-radius) !important;
+}
+
+.gradio-container .wrap .markdown,
+.gradio-container .wrap .markdown p,
+.gradio-container .wrap .markdown strong,
+.gradio-container .wrap h1,
+.gradio-container .wrap h2,
+.gradio-container .wrap .label {
+    color: var(--cp-text) !important;
+    font-family: 'Orbitron', 'Share Tech Mono', sans-serif !important;
+}
+
+.gradio-container .wrap .label,
+.gradio-container .wrap .secondary {
+    color: var(--cp-text-dm) !important;
+    font-family: "VT323", monospace !important;
+}
+
+/* Override Gradio default light-theme containers */
+.gradio-container main,
+.gradio-container article {
+    background: var(--cp-bg) !important;
+}
+
+/* Allow page scroll when content exceeds viewport */
+html,
+body {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+.gradio-container {
+    min-height: 100vh !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+.gradio-container main,
+.gradio-container article {
+    height: auto !important;
+    overflow: visible !important;
+}
+
+/* Hide scrollbars globally but allow scrolling */
+.gradio-container * {
+    scrollbar-width: thin !important;
+}
+
+.gradio-container *::-webkit-scrollbar {
+    width: 4px !important;
+    height: 4px !important;
+}
+
+/* 「探索平行宇宙」画廊：覆盖全局滚动条抑制，显示赛博朋克风格横向滚动条
+   scrollbar-width:thin + scrollbar-color → Chrome 标准API，遵循 OS overlay 行为
+   ::-webkit-scrollbar → Chrome 120 及以下版本的自定义滚动条（永久显示）
+   thumb 的 background 必须用硬编码颜色，不可用 CSS 变量（伪元素中 var() 可能不解析） */
+.gradio-container .fe-ref-gallery-hscroll,
+.gradio-container .fe-ref-gallery-hscroll * {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(5, 217, 232, 0.7) rgba(0, 10, 30, 0.6) !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll::-webkit-scrollbar,
+.gradio-container .fe-ref-gallery-hscroll *::-webkit-scrollbar {
+    width: 6px !important;
+    height: 6px !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll::-webkit-scrollbar-track,
+.gradio-container .fe-ref-gallery-hscroll *::-webkit-scrollbar-track {
+    background: rgba(0, 10, 30, 0.6) !important;
+    border-radius: 3px !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll::-webkit-scrollbar-thumb,
+.gradio-container .fe-ref-gallery-hscroll *::-webkit-scrollbar-thumb {
+    background: rgba(5, 217, 232, 0.7) !important;
+    border-radius: 3px !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll::-webkit-scrollbar-thumb:hover,
+.gradio-container .fe-ref-gallery-hscroll *::-webkit-scrollbar-thumb:hover {
+    background: rgba(5, 217, 232, 1) !important;
+}
+
+/* Restore horizontal scroll where intentionally needed */
+.gradio-container .fe-ref-gallery-hscroll {
+    overflow: visible !important;
+}
+
+.gradio-container .fe-examples-carousel {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+}
+
+.gradio-container .fe-examples-carousel .grid-wrap {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §4  HEADER — Neon gradient title + shimmer glow line (MARGIN TOP ADDED)
+   ══════════════════════════════════════════════════════════════════════════════ */
+.gradio-container .fe-header {
+    border-bottom: 1px solid var(--cp-border);
+    border-top: 1px solid rgba(0, 255, 255, 0.15);
+    padding-bottom: 0.75rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+/* Top decorative neon line — thinner cyan accent above header */
+.gradio-container .fe-header::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -1px;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent 0%, rgba(0, 255, 255, 0.6) 15%, rgba(var(--cp-neon-pr-rgb), 0.4) 50%,
+        rgba(0, 255, 255, 0.6) 85%, transparent 100%);
+    box-shadow: 0 0 12px rgba(0, 255, 255, 0.5),
+                0 0 30px rgba(0, 255, 255, 0.25);
+    pointer-events: none;
+}
+
+/* Bottom neon gradient glow line beneath header */
+.gradio-container .fe-header::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 3px;
+    background: linear-gradient(90deg,
+        transparent 0%, #ff2a6d 10%, var(--cp-neon-pk-dark) 35%, #05d9e8 65%, #ff2a6d 90%, transparent 100%);
+    background-size: 200% 100%;
+    box-shadow: 0 0 20px rgba(255, 42, 109, 0.7),
+                0 0 50px rgba(var(--cp-neon-pk-dark-rgb), 0.5),
+                0 0 100px rgba(5, 217, 232, 0.3);
+    animation: cp-line-shimmer 6s linear infinite;
+    opacity: 1;
+}
+
+.gradio-container .fe-header .markdown {
+    font-family: 'Orbitron', sans-serif !important;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-align: center;
+    width: 100% !important;
+}
+
+/* H1: magenta→purple→cyan gradient text with neon drop-shadow */
+.gradio-container .fe-header .markdown h1 {
+    /* Match `重塑你的世界` button primary style */
+    background: transparent !important;
+    -webkit-background-clip: initial !important;
+    -webkit-text-fill-color: #2ee8f5 !important;
+    background-clip: initial !important;
+    color: #2ee8f5 !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 44px !important;
+    text-shadow: 0 0 12px rgba(46, 232, 245, 0.7) !important;
+    letter-spacing: 0.1em !important;
+    animation: none !important;
+    filter: none !important;
+    text-transform: uppercase;
+    text-align: center !important;
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    line-height: 1.05 !important;
+}
+
+/* Extra hardening: in case Gradio markdown DOM is different */
+.gradio-container [data-testid="markdown"].fe-header h1 {
+    color: #2ee8f5 !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 44px !important;
+    text-shadow: 0 0 12px rgba(46, 232, 245, 0.7) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.1em !important;
+    text-align: center !important;
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    line-height: 1.05 !important;
+    background: transparent !important;
+    -webkit-text-fill-color: #2ee8f5 !important;
+    animation: none !important;
+    filter: none !important;
+}
+
+/* Subtitle/description */
+.gradio-container .fe-header .markdown p {
+    color: var(--cp-text-dm) !important;
+    text-shadow: 0 0 5px rgba(5, 217, 232, 0.25);
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §5  STATUS BAR — Cyan neon left-accent + dense scanlines + bigger shadow
+   ══════════════════════════════════════════════════════════════════════════════ */
+.gradio-container .fe-status {
+    margin-top: 0.75rem;
+    padding: 0.8rem 1rem;
+    border-top: 2px solid var(--cp-border);
+    border-left: 4px solid var(--cp-neon-cy);  /* 更粗的边框 */
+    background: rgba(12, 6, 24, 0.95);
+    border-radius: 0 var(--cp-radius) var(--cp-radius) 0;
+    box-shadow: 0 0 20px rgba(5, 217, 232, 0.25),
+                0 0 50px rgba(5, 217, 232, 0.15),
+                inset 0 0 30px rgba(5, 217, 232, 0.05);
+    position: relative;
+}
+
+/* Dense scanline overlay */
+.gradio-container .fe-status::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 100%;
+    background: repeating-linear-gradient(
+        180deg,
+        transparent 0, transparent 3px,
+        rgba(5, 217, 232, 0.06) 3px,
+        rgba(5, 217, 232, 0.06) 4px
+    );
+    pointer-events: none;
+    border-radius: 0 var(--cp-radius) var(--cp-radius) 0;
+}
+
+/* Diagonal accent stripe on status bar — bottom-right */
+.gradio-container .fe-status::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 60px;
+    height: 100%;
+    background: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 4px,
+        rgba(5, 217, 232, 0.06) 4px,
+        rgba(5, 217, 232, 0.06) 6px
+    );
+    pointer-events: none;
+    border-radius: 0 var(--cp-radius) var(--cp-radius) 0;
+}
+
+/* Status text: cyan neon */
+.gradio-container .fe-status .markdown,
+.gradio-container .fe-status .markdown span {
+    font-family: 'Share Tech Mono', monospace !important;
+    color: var(--cp-neon-cy) !important;
+    text-shadow: 0 0 6px rgba(5, 217, 232, 0.4);
+}
+
+/* Bold keywords in status: magenta accent */
+.gradio-container .fe-status .markdown strong {
+    color: var(--cp-neon-pk) !important;
+    text-shadow: 0 0 8px rgba(255, 42, 109, 0.5);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §6  INPUT FIELDS — Purple focus glow + thicker border
+   ══════════════════════════════════════════════════════════════════════════════ */
+.gradio-container textarea,
+.gradio-container input[type="text"] {
+    background: var(--cp-bg-ele) !important;
+    color: var(--cp-text) !important;
+    border: 2px solid var(--cp-border) !important;  /* 更粗边框 */
+    border-radius: var(--cp-radius) !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+
+.gradio-container textarea:focus,
+.gradio-container input:focus {
+    border-color: var(--cp-neon-pk-dark) !important;
+    border-width: 2px !important;
+    box-shadow: 0 0 15px rgba(var(--cp-neon-pk-dark-rgb), 0.7),
+                0 0 40px rgba(var(--cp-neon-pk-dark-rgb), 0.4),
+                0 0 80px rgba(var(--cp-neon-pk-dark-rgb), 0.2),
+                inset 0 0 15px rgba(var(--cp-neon-pk-dark-rgb), 0.08) !important;
+}
+
+.gradio-container textarea::placeholder {
+    color: var(--cp-text-dm) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §7  BUTTONS — Neon hollow with clip-path corners + thicker glow
+   ══════════════════════════════════════════════════════════════════════════════ */
+/* Primary: magenta neon hollow */
+.gradio-container .primary {
+    background: transparent !important;
+    color: #ff2a6d !important;
+    border: 2.5px solid #ff2a6d !important;   /* 更粗边框 */
+    border-radius: var(--cp-radius) !important;
+    clip-path: var(--cp-clip-btn);
+    box-shadow: var(--cp-glow-pk) !important;
+    text-shadow: 0 0 12px rgba(255, 42, 109, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-family: 'Orbitron', sans-serif !important;
+    font-weight: 600;
+    transition: background 0.2s, box-shadow 0.2s !important;
+}
+
+.gradio-container .primary:hover {
+    background: rgba(255, 42, 109, 0.2) !important;
+    box-shadow:
+        0 0 20px rgba(255, 42, 109, 0.8),
+        0 0 50px rgba(255, 42, 109, 0.5),
+        0 0 100px rgba(255, 42, 109, 0.3),
+        0 0 150px rgba(255, 42, 109, 0.15) !important;
+}
+
+/* Secondary / Stop: dark base, yellow-neon hover */
+.gradio-container .secondary.clickable,
+.gradio-container button:not(.primary) {
+    background: var(--cp-bg-ele) !important;
+    color: var(--cp-text) !important;
+    border: 2px solid var(--cp-border) !important;   /* 更粗边框 */
+    border-radius: var(--cp-radius) !important;
+    clip-path: var(--cp-clip-btn);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: 'Orbitron', sans-serif !important;
+    transition: border-color 0.2s, color 0.2s, box-shadow 0.2s, background 0.2s !important;
+}
+
+.gradio-container .secondary.clickable:hover,
+.gradio-container button:not(.primary):hover {
+    border-color: #f9f002 !important;
+    border-width: 2px !important;
+    color: #f9f002 !important;
+    background: rgba(249, 240, 2, 0.1) !important;
+    text-shadow: 0 0 12px rgba(249, 240, 2, 0.6);
+    box-shadow: 0 0 15px rgba(249, 240, 2, 0.5),
+                0 0 40px rgba(249, 240, 2, 0.3),
+                0 0 80px rgba(249, 240, 2, 0.15) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §8  VIDEO DISPLAY AREA — 外框沉浸 + 内双层框 + 横扫描线 + 两侧竖向霓虹光柱
+   ══════════════════════════════════════════════════════════════════════════════ */
+.gradio-container .fe-video-wrap {
+    border: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    position: relative !important;
+}
+
+/* Overlay wrapper — 与同级 fe-video-fixed (gr.Image) 完全重合 */
+.fe-overlay-wrapper {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 480px !important;            /* 与 STREAM_HEIGHT 一致 */
+    z-index: 20 !important;
+    pointer-events: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+}
+
+/* Gradio 为 gr.HTML 自动生成的中间层容器 —— 透明、撑满，保留定位上下文 */
+.fe-overlay-wrapper > div,
+.fe-overlay-wrapper > div > div {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
+/* Loading 文字 —— 在 overlay 中绝对居中，容器透明文字不透明，呼吸动画 */
+.fe-video-overlay-label {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    padding-bottom: 24px !important;
+    z-index: 20;
+    background: transparent !important;
+    color: var(--cp-neon-cy);
+    font-size: 3rem;
+    font-weight: 400;
+    font-family: 'ZCOOL QingKe HuangYou', 'Orbitron', 'Share Tech Mono',
+                 sans-serif;
+    letter-spacing: 0.2em;
+    text-transform: none;
+    text-shadow: 0 0 20px rgba(var(--cp-neon-cy-rgb), 0.6),
+                 0 0 40px rgba(var(--cp-neon-cy-rgb), 0.3);
+    pointer-events: none;
+    animation: loading-breathe 9.6s ease-in-out infinite;
+}
+
+/* 呼吸动画：青色 ↔ 品红渐变过渡 + 光晕同步变化 */
+@keyframes loading-breathe {
+    0%, 100% {
+        color: var(--cp-neon-cy);
+        text-shadow: 0 0 20px rgba(var(--cp-neon-cy-rgb), 0.6),
+                     0 0 40px rgba(var(--cp-neon-cy-rgb), 0.3);
+    }
+    50% {
+        color: var(--cp-neon-pk);
+        text-shadow: 0 0 20px rgba(var(--cp-neon-pk-rgb), 0.6),
+                     0 0 40px rgba(var(--cp-neon-pk-rgb), 0.3);
+    }
+}
+
+/* 隐藏 Gradio status-tracker 遮罩，防止生成时视频呼吸式闪烁 */
+.gradio-container .fe-video-wrap [data-testid="status-tracker"],
+.gradio-container .fe-video-fixed [data-testid="status-tracker"] {
+    display: none !important;
+}
+
+.gradio-container .fe-video-fixed {
+    border: 3px solid var(--cp-neon-cy) !important;
+    border-radius: 2px !important;
+    box-shadow:
+        0 0 30px rgba(var(--cp-neon-cy-rgb), 0.6),
+        0 0 80px rgba(var(--cp-neon-cy-rgb), 0.4),
+        0 0 150px rgba(var(--cp-neon-cy-rgb), 0.2),
+        inset 0 0 60px rgba(var(--cp-neon-cy-rgb), 0.1) !important;
+    animation: cp-border-flow 9s ease-in-out infinite;
+    position: relative;
+}
+
+.gradio-container .fe-video-fixed::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(var(--cp-neon-cy-rgb), 0.3);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.gradio-container .fe-video-fixed::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -2px;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent 0%, rgba(var(--cp-neon-cy-rgb), 0.15) 20%,
+        rgba(var(--cp-neon-cy-rgb), 0.55) 50%, rgba(var(--cp-neon-cy-rgb), 0.15) 80%, transparent 100%);
+    box-shadow: 0 0 15px rgba(var(--cp-neon-cy-rgb), 0.35),
+                0 2px 25px rgba(var(--cp-neon-cy-rgb), 0.18);
+    animation: cp-scanline-v 6s linear infinite;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.gradio-container .fe-video-fixed::after {
+    display: block !important;
+}
+
+.gradio-container .fe-video-wrap::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    width: 30px;
+    height: 30px;
+    border-top: 2px solid var(--cp-neon-cy);
+    border-left: 2px solid var(--cp-neon-cy);
+    box-shadow: -3px -3px 12px rgba(var(--cp-neon-cy-rgb), 0.3);
+    animation: cp-corner-pulse 3s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.gradio-container .fe-video-wrap::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 30px;
+    height: 30px;
+    border-bottom: 2px solid var(--cp-neon-gn);
+    border-right: 2px solid var(--cp-neon-gn);
+    box-shadow: 3px 3px 12px rgba(var(--cp-neon-gn-rgb), 0.3);
+    animation: cp-corner-pulse 3s ease-in-out infinite 1.5s;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.gradio-container .fe-video-fixed,
+.gradio-container .fe-video-fixed .gr-box,
+.gradio-container .fe-video-fixed [class*="image"] {
+    width: 100% !important;
+    max-width: 880px !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9 !important;
+}
+
+.gradio-container .fe-video-fixed img {
+    width: 100% !important;
+    height: auto !important;
+    object-fit: contain !important;
+    border: none !important;
+}
+
+.gradio-container .fe-video-fixed .gr-box {
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.gradio-container .fe-video-fixed .gr-box::before,
+.gradio-container .fe-video-fixed .gr-box::after {
+    content: "";
+    position: absolute;
+    top: 5%;
+    bottom: 5%;
+    width: 4px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 3;
+    background-repeat: no-repeat;
+    animation: fe-pillar-flow-h 3.5s linear infinite, fe-neon-pillar-pulse 5.5s ease-in-out infinite;
+}
+
+.gradio-container .fe-video-fixed .gr-box::before {
+    left: 6.5%;
+    background-image:
+        linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(var(--cp-neon-cy-rgb), 0) 18%,
+            rgba(var(--cp-neon-cy-rgb), 0.45) 36%,
+            rgba(var(--cp-neon-pr-rgb), 1) 50%,
+            rgba(var(--cp-neon-cy-rgb), 0.45) 64%,
+            rgba(var(--cp-neon-cy-rgb), 0) 82%,
+            transparent 100%
+        ),
+        linear-gradient(
+            180deg,
+            transparent 0%,
+            rgba(var(--cp-neon-cy-rgb), 0.12) 6%,
+            rgba(var(--cp-neon-cy-rgb), 0.92) 32%,
+            rgba(var(--cp-neon-pr-rgb), 0.78) 50%,
+            rgba(var(--cp-neon-cy-rgb), 0.92) 68%,
+            rgba(var(--cp-neon-cy-rgb), 0.12) 94%,
+            transparent 100%
+        );
+    background-size: 320% 100%, 100% 100%;
+    background-position: 0% 50%, 50% 50%;
+    box-shadow:
+        0 0 10px rgba(var(--cp-neon-cy-rgb), 0.9),
+        0 0 26px rgba(var(--cp-neon-cy-rgb), 0.55),
+        0 0 52px rgba(var(--cp-neon-pr-rgb), 0.32),
+        5px 0 20px rgba(var(--cp-neon-cy-rgb), 0.22);
+    animation-delay: 0s, 0s;
+}
+
+.gradio-container .fe-video-fixed .gr-box::after {
+    right: 6.5%;
+    background-image:
+        linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(var(--cp-neon-pr-rgb), 0) 18%,
+            rgba(var(--cp-neon-pr-rgb), 0.5) 36%,
+            rgba(var(--cp-neon-cy-rgb), 0.95) 50%,
+            rgba(var(--cp-neon-pr-rgb), 0.5) 64%,
+            rgba(var(--cp-neon-pr-rgb), 0) 82%,
+            transparent 100%
+        ),
+        linear-gradient(
+            180deg,
+            transparent 0%,
+            rgba(var(--cp-neon-pr-rgb), 0.14) 6%,
+            rgba(var(--cp-neon-pr-rgb), 0.88) 32%,
+            rgba(var(--cp-neon-cy-rgb), 0.75) 50%,
+            rgba(var(--cp-neon-pr-rgb), 0.88) 68%,
+            rgba(var(--cp-neon-pr-rgb), 0.14) 94%,
+            transparent 100%
+        );
+    background-size: 320% 100%, 100% 100%;
+    background-position: 0% 50%, 50% 50%;
+    box-shadow:
+        0 0 10px rgba(var(--cp-neon-pr-rgb), 0.82),
+        0 0 26px rgba(var(--cp-neon-pr-rgb), 0.48),
+        0 0 52px rgba(var(--cp-neon-cy-rgb), 0.28),
+        -5px 0 20px rgba(var(--cp-neon-pr-rgb), 0.2);
+    animation-direction: reverse, normal;
+    animation-delay: 1.1s, 2.75s;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §9  IMAGE PREVIEW
+   ══════════════════════════════════════════════════════════════════════════════ */
+.gradio-container .image-preview,
+.gradio-container [class*="preview"] img {
+    border-radius: var(--cp-radius) !important;
+    border: 1px solid var(--cp-border) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §10  REFERENCE GALLERY — Blue neon hover + bigger shadow
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Videos Gallery caption label — hide only in video gallery */
+.gradio-container .fe-video-gallery-hscroll .caption-label,
+.gradio-container .fe-video-gallery-hscroll [class*="caption-label"] {
+    display: none !important;
+}
+.gradio-container .fe-ref-wrap {
+    border: 2px solid var(--cp-border) !important;
+    border-radius: var(--cp-radius) !important;
+    padding: 10px !important;
+    box-shadow: 0 0 15px rgba(var(--cp-neon-pk-dark-rgb), 0.15),
+                0 0 40px rgba(var(--cp-neon-pk-dark-rgb), 0.08) !important;
+    position: relative !important;
+}
+
+/* Reference gallery — corner brackets */
+.gradio-container .fe-ref-wrap::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    border-top: 2px solid var(--cp-neon-pr);
+    border-left: 2px solid var(--cp-neon-pr);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.gradio-container .fe-ref-wrap::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    border-bottom: 2px solid var(--cp-neon-pr);
+    border-right: 2px solid var(--cp-neon-pr);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.gradio-container .fe-ref-title {
+    position: relative !important;
+    padding-left: 14px !important;
+}
+
+/* Fixed-height Markdown (no scrollbar) */
+.gradio-container [data-testid="markdown"] {
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+}
+
+.gradio-container [data-testid="markdown"]::-webkit-scrollbar {
+    display: none !important;
+}
+
+.gradio-container [data-testid="markdown"].fe-header,
+.gradio-container [data-testid="markdown"].fe-status,
+.gradio-container [data-testid="markdown"].fe-current-prompt,
+.gradio-container [data-testid="markdown"].fe-ref-title {
+    overflow-y: hidden !important;
+    overscroll-behavior: contain !important;
+    box-sizing: border-box !important;
+}
+
+.gradio-container [data-testid="markdown"].fe-header {
+    max-height: 88px !important;
+    height: 88px !important;
+    min-height: 88px !important;
+}
+
+.gradio-container [data-testid="markdown"].fe-status {
+    max-height: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+}
+
+.gradio-container [data-testid="markdown"].fe-current-prompt {
+    max-height: 80px !important;
+    height: 80px !important;
+    min-height: 80px !important;
+}
+
+.gradio-container [data-testid="markdown"].fe-ref-title {
+    max-height: 22px !important;
+    height: 22px !important;
+    min-height: 22px !important;
+}
+
+/* Note: 不额外强行设置父级 min-height，避免触发布局整体溢出 */
+
+/* Left accent bar for section titles */
+.gradio-container .fe-ref-title::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 15%;
+    bottom: 15%;
+    width: 3px;
+    background: linear-gradient(180deg,
+        rgba(var(--cp-neon-pr-rgb), 0.8) 0%, rgba(0, 255, 255, 0.8) 100%);
+    box-shadow: 0 0 10px rgba(var(--cp-neon-pr-rgb), 0.5),
+                0 0 20px rgba(0, 255, 255, 0.3);
+    pointer-events: none;
+}
+
+/* Horizontal accent line under title text */
+.gradio-container .fe-ref-title::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 14px;
+    right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        rgba(var(--cp-neon-pr-rgb), 0.5) 0%, rgba(0, 255, 255, 0.3) 60%, transparent 100%);
+    pointer-events: none;
+}
+
+.gradio-container .fe-ref-title .markdown {
+    color: var(--cp-neon-pr) !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 0.9rem;
+    text-shadow: 0 0 12px rgba(var(--cp-neon-pk-dark-rgb), 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.gradio-container .gallery,
+.gradio-container [class*="gallery"] {
+    background: var(--cp-bg-card) !important;
+    border: 2px solid var(--cp-border) !important;
+    border-radius: var(--cp-radius) !important;
+    box-shadow: 0 0 15px rgba(var(--cp-neon-pk-dark-rgb), 0.12) !important;
+}
+
+/* Thumbnails */
+.gradio-container .gallery img,
+.gradio-container [class*="gallery"] img,
+.gradio-container .gallery [class*="thumbnail"] {
+    border: 2px solid var(--cp-border) !important;
+    border-radius: var(--cp-radius) !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+
+.gradio-container .gallery img:hover,
+.gradio-container [class*="gallery"] img:hover {
+    border-color: var(--cp-neon-pk-dark) !important;
+    border-width: 2px !important;
+    box-shadow: 0 0 20px rgba(var(--cp-neon-pk-dark-rgb), 0.5),
+                0 0 50px rgba(var(--cp-neon-pk-dark-rgb), 0.3),
+                0 0 80px rgba(var(--cp-neon-pk-dark-rgb), 0.15) !important;
+}
+
+.gradio-container .gallery [class*="selected"] img,
+.gradio-container .gallery img:focus {
+    border-width: 3px !important;
+    border-color: var(--cp-neon-pk) !important;
+    box-shadow: 0 0 20px rgba(255, 42, 109, 0.6),
+                0 0 50px rgba(255, 42, 109, 0.35),
+                0 0 100px rgba(255, 42, 109, 0.2) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §11  EXAMPLES — Dark card style + cyber enhancements
+   ══════════════════════════════════════════════════════════════════════════════ */
+.gradio-container .examples,
+.gradio-container [class*="examples"] {
+    border: 2px solid var(--cp-border) !important;
+    border-radius: var(--cp-radius) !important;
+    background: var(--cp-bg-card) !important;
+    box-shadow: 0 0 15px rgba(var(--cp-neon-pk-dark-rgb), 0.12) !important;
+}
+
+.gradio-container .examples .label {
+    color: var(--cp-text-dm) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §12  CHECKBOX + VAE CHECKBOX
+   ══════════════════════════════════════════════════════════════════════════════ */
+.gradio-container .checkbox {
+    color: var(--cp-text) !important;
+}
+
+.gradio-container .fe-vae-checkbox {
+    font-size: 0.85rem !important;
+    white-space: nowrap !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §13  LAYOUT — Prompt area, HUD columns, gallery scroll (ENHANCED)
+   ══════════════════════════════════════════════════════════════════════════════ */
+/* 视频下：两行控制（HUD 行 + 3/4 行） */
+.gradio-container .fe-controls-stack {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    width: 100% !important;
+}
+
+/* 第一行：三列等高拉伸，侧栏总高 = Text Prompt + 按钮 */
+.gradio-container .fe-bottom-row {
+    align-items: stretch !important;
+    gap: 10px !important;
+}
+
+.gradio-container .fe-bottom-row .fe-hud-col {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    min-height: 0 !important;
+}
+
+/* HTML(HUD) 块在列内占满剩余高度（多版本 Gradio 外层类名） */
+.gradio-container .fe-bottom-row .fe-hud-col > * {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+}
+
+.gradio-container .fe-bottom-row .fe-hud-col .html-container,
+.gradio-container .fe-bottom-row .fe-hud-col .gr-html,
+.gradio-container .fe-bottom-row .fe-hud-col .html,
+.gradio-container .fe-bottom-row .fe-hud-col .prose,
+.gradio-container .fe-bottom-row .fe-hud-col [data-testid="html"] {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+}
+
+/* 第二行：仅两列等分，3 与 4 相邻（Debug 区内；不再插入与 Prompt 同宽的空白列） */
+.gradio-container .fe-meta-below-row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+}
+
+/* Debug 面板：页面最下方，默认隐藏；Ctrl+D 切换 body.fe-debug-visible（见 key_handler.js） */
+body:not(.fe-debug-visible) .fe-debug-panel {
+    display: none !important;
+}
+
+body.fe-debug-visible .fe-debug-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-top: 14px !important;
+    padding-top: 12px !important;
+    border-top: 1px solid rgba(var(--cp-neon-pr-rgb), 0.35) !important;
+    box-sizing: border-box !important;
+}
+
+body.fe-debug-visible .fe-debug-panel .fe-debug-panel__row {
+    width: 100% !important;
+}
+
+/* Gradio Row 下每个子块（各 Column 外包一层）等分宽度 */
+.gradio-container .fe-meta-below-row > * {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+}
+
+.gradio-container .fe-hud-col {
+    display: flex !important;
+    align-items: stretch !important;
+    justify-content: center !important;
+    flex-direction: column !important;
+}
+
+/* 赛博朋克风格HUD面板 — 无底色，按键文字更突出 */
+.gradio-container .fe-hud-cyber {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    min-height: 0 !important;
+    max-width: 220px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.gradio-container .fe-prompt-col {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    min-height: 0 !important;
+    position: relative !important;
+}
+
+/* Prompt column — top neon accent line */
+.gradio-container .fe-prompt-col::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%, rgba(var(--cp-neon-pr-rgb), 0.5) 30%,
+        rgba(0, 255, 255, 0.5) 70%, transparent 100%);
+    box-shadow: 0 0 8px rgba(var(--cp-neon-pr-rgb), 0.3);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* 中间列决定行高：占满行宽并参与 stretch */
+.gradio-container .fe-bottom-row .fe-prompt-col {
+    align-self: stretch !important;
+}
+
+/* Prompt区域 — 纵向加高（约 5 行可视高度） */
+.gradio-container .fe-prompt-col textarea,
+.gradio-container .fe-prompt-col input[type="text"] {
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 0.8rem !important;
+    line-height: 1.4 !important;
+    height: calc(5 * 1.4em + 20px) !important;
+    min-height: calc(5 * 1.4em + 20px) !important;
+    background: rgba(10, 0, 32, 0.95) !important;
+    color: var(--cp-neon-cy) !important;
+    border: 2px solid var(--cp-neon-pr) !important;
+    box-shadow: 0 0 20px rgba(var(--cp-neon-pr-rgb), 0.4),
+                inset 0 0 30px rgba(var(--cp-neon-pr-rgb), 0.08) !important;
+}
+
+/* Prompt textarea fill */
+.gradio-container .fe-prompt-input textarea {
+    resize: vertical !important;
+}
+
+/* 第二行左格：模型状态（对齐「移动」列宽） */
+.gradio-container .fe-meta-slot-3 {
+    margin-top: 0 !important;
+    width: 100% !important;
+    align-self: stretch !important;
+}
+
+.gradio-container .fe-meta-slot-3-wrap .fe-status {
+    margin-top: 0 !important;
+}
+
+/* 第二行右格：VAE 面板（与左侧状态条视觉对称） */
+.gradio-container .fe-vae-hud-wrap {
+    margin-top: 0 !important;
+    width: 100% !important;
+    align-self: stretch !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0.5rem 0.75rem !important;
+    border-top: 2px solid var(--cp-border) !important;
+    border-right: 4px solid var(--cp-neon-pr) !important;
+    background: rgba(12, 6, 24, 0.95) !important;
+    border-radius: var(--cp-radius) 0 0 var(--cp-radius) !important;
+    box-shadow: 0 0 20px rgba(var(--cp-neon-pr-rgb), 0.15),
+                inset 0 0 20px rgba(var(--cp-neon-pr-rgb), 0.04) !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+/* VAE panel — diagonal stripe texture overlay */
+.gradio-container .fe-vae-hud-wrap::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50px;
+    height: 100%;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 4px,
+        rgba(var(--cp-neon-pr-rgb), 0.05) 4px,
+        rgba(var(--cp-neon-pr-rgb), 0.05) 6px
+    );
+    pointer-events: none;
+}
+
+.gradio-container .fe-vae-hud-wrap .form,
+.gradio-container .fe-vae-hud-wrap [class*="block"] {
+    width: 100% !important;
+}
+
+.gradio-container .fe-status-inline {
+    margin: 0 !important;
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.85rem !important;
+    box-sizing: border-box !important;
+}
+
+/* Button row */
+.gradio-container .fe-prompt-btns {
+    margin-top: 0 !important;
+    gap: 10px !important;
+    position: relative !important;
+}
+
+/* Button row top divider — thin neon line */
+.gradio-container .fe-prompt-btns::before {
+    content: "";
+    position: absolute;
+    top: -4px;
+    left: 5%;
+    right: 5%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%, rgba(255, 42, 109, 0.4) 20%,
+        rgba(255, 42, 109, 0.6) 50%, rgba(255, 42, 109, 0.4) 80%, transparent 100%);
+    pointer-events: none;
+}
+
+.gradio-container .fe-prompt-btns button {
+    flex: 1 !important;
+}
+
+/* ── Reference gallery horizontal single-row scroll ─────────────────────────── */
+/* Gradio 6：allow_preview 时 .preview 为 absolute 全幅，会盖住网格，只剩底部一条缩略图带 */
+.gradio-container .fe-ref-gallery-hscroll .gallery-container .preview,
+.gradio-container .fe-examples-carousel .gallery-container .preview {
+    display: none !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll {
+    overflow: visible !important;
+    white-space: nowrap !important;
+    padding: 4px 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* ── Examples carousel — 带图的横向滑动窗口，一排显示多张 ────────────────── */
+.gradio-container .fe-examples-carousel {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 12px !important;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 29px,
+            rgba(var(--cp-neon-pr-rgb), 0.03) 29px,
+            rgba(var(--cp-neon-pr-rgb), 0.03) 30px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 29px,
+            rgba(0, 255, 255, 0.02) 29px,
+            rgba(0, 255, 255, 0.02) 30px
+        ),
+        rgba(5, 0, 18, 0.9) !important;
+    border: 3px solid var(--cp-neon-pr) !important;
+    border-radius: 2px !important;
+    box-shadow: 0 0 30px rgba(var(--cp-neon-pr-rgb), 0.4),
+                0 0 80px rgba(var(--cp-neon-pr-rgb), 0.2),
+                inset 0 0 40px rgba(var(--cp-neon-pr-rgb), 0.05) !important;
+    position: relative !important;
+}
+
+/* Examples carousel — top edge neon line */
+.gradio-container .fe-examples-carousel::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%, rgba(var(--cp-neon-pr-rgb), 0.7) 20%, rgba(0, 255, 255, 0.7) 80%, transparent 100%);
+    box-shadow: 0 0 10px rgba(var(--cp-neon-pr-rgb), 0.4);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Examples carousel — bottom edge neon line */
+.gradio-container .fe-examples-carousel::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%, rgba(0, 255, 255, 0.7) 20%, rgba(var(--cp-neon-pr-rgb), 0.7) 80%, transparent 100%);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.gradio-container .fe-examples-carousel .grid-wrap {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+}
+
+/* 示例区：单行横向排布，总宽 max-content 以便外层横向滚动 */
+.gradio-container .fe-examples-carousel .grid-container {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    width: max-content !important;
+    max-width: none !important;
+    justify-content: flex-start !important;
+    gap: 15px !important;
+}
+
+.gradio-container .fe-examples-carousel .grid-container > * {
+    flex: 0 0 180px !important;
+    width: 180px !important;
+    max-width: 180px !important;
+}
+
+.gradio-container .fe-examples-carousel img {
+    width: 180px !important;
+    height: 110px !important;
+    object-fit: cover !important;
+    border-radius: 2px !important;
+    border: 2px solid var(--cp-neon-pk) !important;
+    box-shadow: 0 0 15px rgba(255, 42, 109, 0.5) !important;
+    transition: all 0.3s !important;
+}
+
+.gradio-container .fe-examples-carousel img:hover {
+    border-color: var(--cp-neon-cy) !important;
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.7),
+                0 0 50px rgba(0, 255, 255, 0.4) !important;
+    transform: scale(1.05) !important;
+}
+
+.gradio-container .fe-examples-carousel [class*="caption"],
+.gradio-container .fe-examples-carousel .caption {
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 0.65rem !important;
+    color: var(--cp-neon-cy) !important;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5) !important;
+    padding: 4px !important;
+    text-align: left !important;
+    line-height: 1.3 !important;
+    overflow: hidden !important;
+}
+
+/* ── Legacy examples fallback ─────────────────────────────────────────────── */
+.gradio-container .fe-examples-legacy {
+    border: 2px solid var(--cp-border) !important;
+    border-radius: var(--cp-radius) !important;
+    background: var(--cp-bg-card) !important;
+    box-shadow: 0 0 15px rgba(var(--cp-neon-pk-dark-rgb), 0.12) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §14  VIDEO CONTAINER — Remove placeholder icons
+   ══════════════════════════════════════════════════════════════════════════════ */
+.gradio-container .fe-video-fixed [class*="placeholder"],
+.gradio-container .fe-video-fixed [class*="icon"],
+.gradio-container .fe-video-fixed [class*="upload"] {
+    display: none !important;
+}
+
+.gradio-container .fe-video-fixed .gr-box:empty::before,
+.gradio-container .fe-video-fixed .gr-box:empty::after {
+    content: "" !important;
+    display: none !important;
+}
+
+/* 「探索平行宇宙」画廊：显示赛博朋克风格横向滚动条 */
+.gradio-container .fe-ref-gallery-hscroll::-webkit-scrollbar {
+    display: block !important;
+    width: 6px !important;
+    height: 6px !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll::-webkit-scrollbar-track {
+    background: rgba(0, 10, 30, 0.6) !important;
+    border-radius: 3px !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll::-webkit-scrollbar-thumb {
+    background: rgba(5, 217, 232, 0.7) !important;
+    border-radius: 3px !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(5, 217, 232, 1) !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(5, 217, 232, 0.7) rgba(0, 10, 30, 0.6) !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll .grid-wrap {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(5, 217, 232, 0.7) rgba(0, 10, 30, 0.6) !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll .grid-wrap::-webkit-scrollbar {
+    height: 6px !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll .grid-wrap::-webkit-scrollbar-track {
+    background: rgba(0, 10, 30, 0.6) !important;
+    border-radius: 3px !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll .grid-wrap::-webkit-scrollbar-thumb {
+    background: rgba(5, 217, 232, 0.7) !important;
+    border-radius: 3px !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll .grid-container {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    width: max-content !important;
+    max-width: none !important;
+    gap: 6px !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll .grid-container::-webkit-scrollbar {
+    display: none !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll .grid-container > * {
+    flex: 0 0 auto !important;
+    width: 120px !important;
+    height: 120px !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll img {
+    width: 120px !important;
+    height: 120px !important;
+    object-fit: cover !important;
+}
+
+/* Reference gallery captions — cyberpunk cyan glow on dark overlay */
+.gradio-container .fe-ref-gallery-hscroll [class*="caption"],
+.gradio-container .fe-ref-gallery-hscroll .caption,
+.gradio-container .fe-ref-gallery-hscroll .gallery-caption,
+.gradio-container .fe-ref-gallery-hscroll span[data-testid="caption"] {
+    background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(0, 10, 30, 0.75) 40%,
+        rgba(0, 10, 30, 0.92) 100%
+    ) !important;
+    color: #ffffff !important;
+    font-family: 'Orbitron', 'Share Tech Mono', monospace !important;
+    font-size: 0.65rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.04em !important;
+    text-shadow:
+        0 0 6px rgba(5, 217, 232, 0.7),
+        0 0 14px rgba(5, 217, 232, 0.4),
+        0 0 28px rgba(5, 217, 232, 0.2) !important;
+    padding: 6px 6px 4px !important;
+    text-align: center !important;
+    line-height: 1.3 !important;
+    -webkit-text-fill-color: #ffffff !important;
+}
+
+/* ── 「探索平行宇宙」画廊：自定义横向滚动进度条（JS 注入的 DOM） ──
+   绕过浏览器原生滚动条 overlay 行为，提供永久可见的滚动指示器 */
+.fe-gallery-scrollbar {
+    position: relative;
+    width: 100%;
+    height: 6px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    padding: 0;
+    border-radius: 3px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.fe-gallery-sb-track {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 10, 30, 0.6);
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.fe-gallery-sb-thumb {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    min-width: 30px;
+    background: rgba(5, 217, 232, 0.7);
+    border-radius: 3px;
+    cursor: grab;
+    transition: background 0.2s ease;
+    box-shadow: 0 0 6px rgba(5, 217, 232, 0.4);
+}
+
+.fe-gallery-sb-thumb:hover {
+    background: rgba(5, 217, 232, 1);
+    box-shadow: 0 0 10px rgba(5, 217, 232, 0.6);
+}
+
+.fe-gallery-sb-thumb:active {
+    cursor: grabbing;
+    background: rgba(5, 217, 232, 1);
+    box-shadow: 0 0 14px rgba(5, 217, 232, 0.8);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §15  CYBERPUNK DECORATIVE LINE ENHANCEMENTS
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Controls stack — left & right neon edge lines */
+.gradio-container .fe-controls-stack {
+    position: relative !important;
+}
+
+.gradio-container .fe-controls-stack::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 5%;
+    bottom: 5%;
+    width: 1px;
+    background: linear-gradient(180deg,
+        transparent 0%, rgba(0, 255, 255, 0.3) 20%,
+        rgba(var(--cp-neon-pr-rgb), 0.4) 50%, rgba(0, 255, 255, 0.3) 80%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.gradio-container .fe-controls-stack::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 5%;
+    bottom: 5%;
+    width: 1px;
+    background: linear-gradient(180deg,
+        transparent 0%, rgba(var(--cp-neon-pr-rgb), 0.3) 20%,
+        rgba(0, 255, 255, 0.4) 50%, rgba(var(--cp-neon-pr-rgb), 0.3) 80%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Primary button — inner diagonal circuit lines */
+.gradio-container .primary::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 8px,
+        rgba(255, 42, 109, 0.04) 8px,
+        rgba(255, 42, 109, 0.04) 10px
+    );
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+/* Gallery horizontal scroll — top/bottom neon edge lines */
+.gradio-container .fe-ref-gallery-hscroll {
+    position: relative !important;
+}
+
+.gradio-container .fe-ref-gallery-hscroll::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%, rgba(0, 255, 255, 0.3) 30%, rgba(0, 255, 255, 0.3) 70%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.gradio-container .fe-ref-gallery-hscroll::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%, rgba(var(--cp-neon-pr-rgb), 0.3) 30%, rgba(var(--cp-neon-pr-rgb), 0.3) 70%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Meta below row — top divider neon line */
+.gradio-container .fe-meta-below-row {
+    position: relative !important;
+}
+
+.gradio-container .fe-meta-below-row::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        rgba(0, 255, 255, 0.4) 0%, rgba(var(--cp-neon-pr-rgb), 0.3) 50%, rgba(0, 255, 255, 0.4) 100%);
+    box-shadow: 0 0 6px rgba(0, 255, 255, 0.2);
+    pointer-events: none;
+}
+
+/* Bottom row — bottom edge neon line */
+.gradio-container .fe-bottom-row {
+    position: relative !important;
+}
+
+.gradio-container .fe-bottom-row::after {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 5%;
+    right: 5%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%, rgba(255, 42, 109, 0.3) 20%, rgba(0, 255, 255, 0.3) 50%,
+        rgba(255, 42, 109, 0.3) 80%, transparent 100%);
+    pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §11 VIDEOS GALLERY — 历史视频展示区
+   ══════════════════════════════════════════════════════════════════════════════ */
+/* 隐藏滚动条的全局样式 */
+.gradio-container .fe-video-gallery-hscroll::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.gradio-container .fe-video-gallery-hscroll {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    position: relative !important;
+    scrollbar-width: none !important;  /* Firefox */
+    -ms-overflow-style: none !important;  /* IE/Edge */
+}
+
+.gradio-container .fe-video-gallery-hscroll .grid-wrap {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.gradio-container .fe-video-gallery-hscroll .grid-wrap::-webkit-scrollbar {
+    display: none !important;
+}
+
+.gradio-container .fe-video-gallery-hscroll .grid-container {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.gradio-container .fe-video-gallery-hscroll .grid-container::-webkit-scrollbar {
+    display: none !important;
+}
+
+.gradio-container .fe-video-gallery-hscroll .grid-container > * {
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    width: 160px !important;
+    height: 160px !important;
+    max-width: 160px !important;
+    max-height: 160px !important;
+}
+
+.gradio-container .fe-video-gallery-hscroll video,
+.gradio-container .fe-video-gallery-hscroll img {
+    object-fit: cover !important;
+    border-radius: 4px !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Videos Gallery top/bottom neon edge lines */
+.gradio-container .fe-video-gallery-hscroll::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%, rgba(255, 42, 109, 0.3) 30%, rgba(255, 42, 109, 0.3) 70%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.gradio-container .fe-video-gallery-hscroll::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%, rgba(0, 255, 255, 0.3) 30%, rgba(0, 255, 255, 0.3) 70%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §12 VIDEO PLAYER — 视频播放区
+   ══════════════════════════════════════════════════════════════════════════════ */
+.gradio-container .fe-video-player-row {
+    margin-top: 0.5rem !important;
+    padding: 0.75rem !important;
+    background: rgba(10, 10, 20, 0.6) !important;
+    border: 1px solid rgba(0, 255, 255, 0.3) !important;
+    border-radius: 4px !important;
+}
+
+.gradio-container .fe-video-player {
+    border-radius: 4px !important;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.15) !important;
+}
+
+.gradio-container .fe-video-player video {
+    border-radius: 4px !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §13 TOAST NOTIFICATION — gr.Info / gr.Warning / gr.Error
+   避免全局赛博字体影响中文与 emoji 显示
+   ══════════════════════════════════════════════════════════════════════════════ */
+.toast-item,
+.toast-item *,
+.toast-body,
+.toast-body * {
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC",
+                 "Segoe UI", "Segoe UI Emoji", "Apple Color Emoji",
+                 sans-serif !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    line-height: 1.45 !important;
+    color: #1a1a2e !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   §14 PROGRESS BAR — Frame 生成与播放双层进度条
+   已播放 = 品红 (#ff2a6d) | 已生成未播放 = 青色 (#05d9e8) | 未生成 = 深色背景
+   ══════════════════════════════════════════════════════════════════════════════ */
+/* 外层容器：与视频区域等宽对齐 */
+.gradio-container .fe-progress-container {
+    width: 100% !important;
+    max-width: 880px !important;
+    margin: 6px auto 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.gradio-container .fe-progress-container > div,
+.gradio-container .fe-progress-container > div > div {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* 进度条整体包装 */
+.fe-progress-wrap {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* 轨道（背景层） */
+.fe-progress-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(0, 27, 74, 0.6);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(5, 217, 232, 0.15);
+    box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 生成进度层（青色） */
+.fe-progress-generated {
+    height: 100%;
+    background: linear-gradient(90deg,
+        rgba(5, 217, 232, 0.5) 0%,
+        rgba(5, 217, 232, 0.85) 50%,
+        rgba(5, 217, 232, 0.5) 100%);
+    box-shadow: 0 0 10px rgba(5, 217, 232, 0.4);
+    position: relative;
+    transition: width 0.3s ease;
+}
+
+/* 播放进度层（品红），嵌套在生成层内部 */
+.fe-progress-played {
+    height: 100%;
+    background: linear-gradient(90deg,
+        rgba(255, 42, 109, 0.6) 0%,
+        rgba(255, 42, 109, 0.95) 50%,
+        rgba(255, 42, 109, 0.6) 100%);
+    box-shadow: 0 0 10px rgba(255, 42, 109, 0.5);
+    transition: width 0.3s ease;
+}
+
+/* 进度条标签 */
+.fe-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+}
+
+.fe-progress-played-label {
+    color: var(--cp-neon-pk);
+    text-shadow: 0 0 6px rgba(255, 42, 109, 0.4);
+}
+
+.fe-progress-generated-label {
+    color: var(--cp-neon-cy);
+    text-shadow: 0 0 6px rgba(5, 217, 232, 0.4);
+}
