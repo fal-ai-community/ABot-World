@@ -112,7 +112,7 @@ If you find our work helpful, please cite our paper:
 
 ```
 @article{abot-world-0,
-      title={ABot-World-0: Real-Time Interactive World Simulation on a Single Desktop GPU}, 
+      title={ABot-World-0: Infinite Interactive World Rollout on Single Desktop GPU}, 
       author={ABot-World Team},
       year={2026}
 }
