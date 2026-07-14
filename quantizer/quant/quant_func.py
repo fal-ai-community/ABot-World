@@ -17,16 +17,30 @@ from typing import Optional, Tuple
 import torch
 
 from ..kernels.python.gemm import fp8_gemm_triton_block
-from lightx2v_kernel.gemm import (
-    cutlass_scaled_mxfp4_mm,
-    cutlass_scaled_mxfp6_mxfp8_mm,
-    cutlass_scaled_mxfp8_mm,
-    cutlass_scaled_nvfp4_mm,
-    scaled_mxfp4_quant,
-    scaled_mxfp6_quant,
-    scaled_mxfp8_quant,
-    scaled_nvfp4_quant,
-)
+try:
+    from lightx2v_kernel.gemm import (
+        cutlass_scaled_mxfp4_mm,
+        cutlass_scaled_mxfp6_mxfp8_mm,
+        cutlass_scaled_mxfp8_mm,
+        cutlass_scaled_nvfp4_mm,
+        scaled_mxfp4_quant,
+        scaled_mxfp6_quant,
+        scaled_mxfp8_quant,
+        scaled_nvfp4_quant,
+    )
+except ImportError:
+    def _raise_lightx2v_not_install(*args, **kwargs):
+        raise ImportError("lightx2v_kernel not installed")
+    
+    cutlass_scaled_mxfp4_mm = _raise_lightx2v_not_install
+    cutlass_scaled_mxfp6_mxfp8_mm = _raise_lightx2v_not_install
+    cutlass_scaled_mxfp8_mm = _raise_lightx2v_not_install
+    cutlass_scaled_nvfp4_mm = _raise_lightx2v_not_install
+    scaled_mxfp4_quant = _raise_lightx2v_not_install
+    scaled_mxfp6_quant = _raise_lightx2v_not_install
+    scaled_mxfp8_quant = _raise_lightx2v_not_install
+    scaled_nvfp4_quant = _raise_lightx2v_not_install
+
 from ..kernels.python.quantizers import (
     fp8_per_block_quant_triton,
     fp8_per_token_group_quant_triton,

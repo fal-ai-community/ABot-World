@@ -16,12 +16,21 @@ import os
 import time
 
 import torch
-from lightx2v_kernel.gemm import (
-    cutlass_scaled_mxfp4_mm,
-    cutlass_scaled_mxfp6_mxfp8_mm,
-    cutlass_scaled_mxfp8_mm,
-    cutlass_scaled_nvfp4_mm,
-)
+try:
+    from lightx2v_kernel.gemm import (
+        cutlass_scaled_mxfp4_mm,
+        cutlass_scaled_mxfp6_mxfp8_mm,
+        cutlass_scaled_mxfp8_mm,
+        cutlass_scaled_nvfp4_mm,
+    )
+except ImportError:
+    def _raise_lightx2v_not_install(*args, **kwargs):
+        raise ImportError("lightx2v_kernel not installed")
+    
+    cutlass_scaled_mxfp4_mm = _raise_lightx2v_not_install
+    cutlass_scaled_mxfp6_mxfp8_mm = _raise_lightx2v_not_install
+    cutlass_scaled_mxfp8_mm = _raise_lightx2v_not_install
+    cutlass_scaled_nvfp4_mm = _raise_lightx2v_not_install
 
 try:
     from torchao.quantization.utils import quant_int8_per_token_matmul as torchao_int8_gemm
