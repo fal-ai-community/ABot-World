@@ -9,7 +9,14 @@ try:
         if not torch.cuda.is_available():
             return False
         device_name = torch.cuda.get_device_name(0).lower()
-        return "h100" in device_name or "hopper" in device_name
+        # Detect Hopper by SM90 compute capability, not device name, so FA3 is
+        # used on H200/H20/GH200 as well (the name check missed everything but H100).
+        try:
+            if torch.cuda.get_device_capability(0)[0] == 9:
+                return True
+        except Exception:
+            pass
+        return "h100" in device_name or "h200" in device_name or "hopper" in device_name
     FLASH_ATTN_3_AVAILABLE = is_hopper_gpu()
 except ModuleNotFoundError:
     FLASH_ATTN_3_AVAILABLE = False
