@@ -313,8 +313,13 @@ class CausalInferencePipeline(torch.nn.Module):
                 self.crossattn_cache[b]["is_init"] = False
             # reset kv cache indices
             for b in range(len(self.kv_cache1)):
-                self.kv_cache1[b]["global_end_index"].fill_(0)
-                self.kv_cache1[b]["local_end_index"].fill_(0)
+                # ABot opt (Change A): int counters, not tensors.
+                self.kv_cache1[b]["global_end_index"] = 0
+                self.kv_cache1[b]["local_end_index"] = 0
+                if "_shadow_global_end_index" in self.kv_cache1[b]:
+                    self.kv_cache1[b]["_shadow_global_end_index"].fill_(0)
+                if "_shadow_local_end_index" in self.kv_cache1[b]:
+                    self.kv_cache1[b]["_shadow_local_end_index"].fill_(0)
 
         self.current_start_frame = 0
         self.num_input_frames = initial_latent.shape[1] if initial_latent is not None else 0
@@ -549,10 +554,13 @@ class CausalInferencePipeline(torch.nn.Module):
                 self.crossattn_cache[block_index]["is_init"] = False
             # reset kv cache
             for block_index in range(len(self.kv_cache1)):
-                self.kv_cache1[block_index]["global_end_index"] = torch.tensor(
-                    [0], dtype=torch.long, device=noise.device)
-                self.kv_cache1[block_index]["local_end_index"] = torch.tensor(
-                    [0], dtype=torch.long, device=noise.device)
+                # ABot opt (Change A): int counters, not tensors.
+                self.kv_cache1[block_index]["global_end_index"] = 0
+                self.kv_cache1[block_index]["local_end_index"] = 0
+                if "_shadow_global_end_index" in self.kv_cache1[block_index]:
+                    self.kv_cache1[block_index]["_shadow_global_end_index"].fill_(0)
+                if "_shadow_local_end_index" in self.kv_cache1[block_index]:
+                    self.kv_cache1[block_index]["_shadow_local_end_index"].fill_(0)
                 self.kv_cache1[block_index]["ref_token_len"] = torch.tensor(
                     [0], dtype=torch.long, device=noise.device)
 
@@ -796,8 +804,11 @@ class CausalInferencePipeline(torch.nn.Module):
             kv_cache1.append({
                 "k": torch.zeros([batch_size, kv_cache_size, num_heads, head_dim], dtype=dtype, device=device),
                 "v": torch.zeros([batch_size, kv_cache_size, num_heads, head_dim], dtype=dtype, device=device),
-                "global_end_index": torch.tensor([0], dtype=torch.long, device=device),
-                "local_end_index": torch.tensor([0], dtype=torch.long, device=device),
+                # ABot opt (Change A): counters are plain Python ints (no device
+                # →host `.item()` sync on the hot path). Shadow CUDA tensors are
+                # created lazily only when ABOT_VALIDATE_KV=1 (see causal_model).
+                "global_end_index": 0,
+                "local_end_index": 0,
                 "ref_token_len": torch.tensor([0], dtype=torch.long, device=device),
             })
 

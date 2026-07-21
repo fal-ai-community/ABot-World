@@ -29,6 +29,36 @@ from wan.modules.model import (
 from wan.modules.attention import flash_attention
 
 
+# ===== ABot opt: KV-cache counters as Python ints (no device→host sync) =====
+# When ABOT_VALIDATE_KV=1 we ALSO keep the original CUDA tensor counters
+# updated in parallel ("shadow" tensors) and assert the int path equals the
+# tensor path at every former `.item()` read site. When unset (production),
+# the shadow tensors are never created and no CUDA sync ever happens.
+_ABOT_VALIDATE_KV = os.environ.get("ABOT_VALIDATE_KV") == "1"
+
+
+def _abot_shadow_fill(kv_cache, key, value, device):
+    """Validation-only: keep a CUDA shadow tensor in sync with the int counter."""
+    if not _ABOT_VALIDATE_KV:
+        return
+    shadow_key = "_shadow_" + key
+    t = kv_cache.get(shadow_key)
+    if t is None:
+        kv_cache[shadow_key] = torch.tensor([int(value)], dtype=torch.long, device=device)
+    else:
+        t.fill_(int(value))
+
+
+def _abot_shadow_check(kv_cache, key, int_value, site):
+    """Validation-only: assert the int counter matches its CUDA shadow tensor."""
+    if not _ABOT_VALIDATE_KV:
+        return
+    shadow_key = "_shadow_" + key
+    t = kv_cache.get(shadow_key)
+    if t is not None:
+        assert int(int_value) == int(t.item()), f"KV index mismatch @{site}"
+
+
 # ===== Debug helpers：只在异常/即将越界时打印，正常路径不刷日志 =====
 
 def _dbg_tensor(name, x):
@@ -667,7 +697,15 @@ class CausalWanSelfAttention(nn.Module):
                     )
         else:
             try:
-                frame_seqlen = int(math.prod(grid_sizes[0][1:]).item())
+                # ABot opt (Change B): frame_seqlen is fixed patch-grid geometry
+                # (h*w), constant for the whole stream. Compute the host int once
+                # per kv_cache and reuse it, so the device→host sync happens at
+                # most once per stream instead of on every step. Value identical
+                # to `int(math.prod(grid_sizes[0][1:]).item())`.
+                frame_seqlen = kv_cache.get("frame_seqlen")
+                if frame_seqlen is None:
+                    frame_seqlen = int(math.prod(grid_sizes[0][1:]).item())
+                    kv_cache["frame_seqlen"] = frame_seqlen
                 ref_token_len = int(getattr(self, "_num_ref_tokens", 0) or 0)
                 query_ref_token_len = int(getattr(self, "_query_ref_token_len", 0) or 0)
                 video_token_len = q.shape[1] - query_ref_token_len
@@ -703,13 +741,16 @@ class CausalWanSelfAttention(nn.Module):
                         kv_cache["rel_rope_base_frame"] = 0
                     # Reset the rope base at the start of a new stream (reset_stream
                     # zeroes global_end_index but reuses the cache tensors).
-                    if fast_rel and int(kv_cache["global_end_index"].item()) == 0:
+                    _abot_shadow_check(kv_cache, "global_end_index", kv_cache["global_end_index"], "rel.rebase")
+                    if fast_rel and int(kv_cache["global_end_index"]) == 0:
                         kv_cache["rel_rope_base_frame"] = 0
 
-                    if self.local_attn_size != -1 and (cache_current_end > kv_cache["global_end_index"].item()) and (
-                            video_token_len + kv_cache["local_end_index"].item() > kv_cache_size):
-                        num_evicted_tokens = video_token_len + kv_cache["local_end_index"].item() - kv_cache_size
-                        num_rolled_tokens = kv_cache["local_end_index"].item() - num_evicted_tokens - sink_tokens
+                    _abot_shadow_check(kv_cache, "global_end_index", kv_cache["global_end_index"], "rel.roll.global")
+                    _abot_shadow_check(kv_cache, "local_end_index", kv_cache["local_end_index"], "rel.roll.local")
+                    if self.local_attn_size != -1 and (cache_current_end > kv_cache["global_end_index"]) and (
+                            video_token_len + kv_cache["local_end_index"] > kv_cache_size):
+                        num_evicted_tokens = video_token_len + kv_cache["local_end_index"] - kv_cache_size
+                        num_rolled_tokens = kv_cache["local_end_index"] - num_evicted_tokens - sink_tokens
 
                         if num_evicted_tokens < 0 or num_rolled_tokens < 0:
                             _dbg_print(
@@ -741,11 +782,15 @@ class CausalWanSelfAttention(nn.Module):
                                 kv_cache["k_roped"][:,
                                 sink_tokens + num_evicted_tokens:sink_tokens + num_evicted_tokens + num_rolled_tokens].clone()
 
-                        local_end_index = kv_cache["local_end_index"].item() + cache_current_end - \
-                                          kv_cache["global_end_index"].item() - num_evicted_tokens
+                        _abot_shadow_check(kv_cache, "local_end_index", kv_cache["local_end_index"], "rel.local_end.roll")
+                        _abot_shadow_check(kv_cache, "global_end_index", kv_cache["global_end_index"], "rel.local_end.roll")
+                        local_end_index = kv_cache["local_end_index"] + cache_current_end - \
+                                          kv_cache["global_end_index"] - num_evicted_tokens
                     else:
-                        local_end_index = kv_cache["local_end_index"].item() + cache_current_end - kv_cache[
-                            "global_end_index"].item()
+                        _abot_shadow_check(kv_cache, "local_end_index", kv_cache["local_end_index"], "rel.local_end.noroll")
+                        _abot_shadow_check(kv_cache, "global_end_index", kv_cache["global_end_index"], "rel.local_end.noroll")
+                        local_end_index = kv_cache["local_end_index"] + cache_current_end - kv_cache[
+                            "global_end_index"]
                     local_start_index = local_end_index - video_token_len
 
                     if local_start_index < sink_tokens or local_end_index > kv_cache["k_raw"].shape[1]:
@@ -1001,8 +1046,10 @@ class CausalWanSelfAttention(nn.Module):
 
                         x = attention(roped_query, attn_k, attn_v)
 
-                    kv_cache["global_end_index"].fill_(cache_current_end)
-                    kv_cache["local_end_index"].fill_(local_end_index)
+                    kv_cache["global_end_index"] = int(cache_current_end)
+                    kv_cache["local_end_index"] = int(local_end_index)
+                    _abot_shadow_fill(kv_cache, "global_end_index", cache_current_end, q.device)
+                    _abot_shadow_fill(kv_cache, "local_end_index", local_end_index, q.device)
                 else:
                     current_start_frame = current_start // frame_seqlen
 
@@ -1042,10 +1089,12 @@ class CausalWanSelfAttention(nn.Module):
 
                     num_new_tokens = roped_query.shape[1]
 
-                    if self.local_attn_size != -1 and (cache_current_end > kv_cache["global_end_index"].item()) and (
-                            num_new_tokens + kv_cache["local_end_index"].item() > kv_cache_size):
-                        num_evicted_tokens = num_new_tokens + kv_cache["local_end_index"].item() - kv_cache_size
-                        num_rolled_tokens = kv_cache["local_end_index"].item() - num_evicted_tokens - sink_tokens
+                    _abot_shadow_check(kv_cache, "global_end_index", kv_cache["global_end_index"], "abs.roll.global")
+                    _abot_shadow_check(kv_cache, "local_end_index", kv_cache["local_end_index"], "abs.roll.local")
+                    if self.local_attn_size != -1 and (cache_current_end > kv_cache["global_end_index"]) and (
+                            num_new_tokens + kv_cache["local_end_index"] > kv_cache_size):
+                        num_evicted_tokens = num_new_tokens + kv_cache["local_end_index"] - kv_cache_size
+                        num_rolled_tokens = kv_cache["local_end_index"] - num_evicted_tokens - sink_tokens
 
                         if num_evicted_tokens < 0 or num_rolled_tokens < 0:
                             _dbg_print(
@@ -1078,12 +1127,16 @@ class CausalWanSelfAttention(nn.Module):
                             kv_cache["v"][:,
                             sink_tokens + num_evicted_tokens:sink_tokens + num_evicted_tokens + num_rolled_tokens].clone()
 
-                        local_end_index = kv_cache["local_end_index"].item() + cache_current_end - \
-                                          kv_cache["global_end_index"].item() - num_evicted_tokens
+                        _abot_shadow_check(kv_cache, "local_end_index", kv_cache["local_end_index"], "abs.local_end.roll")
+                        _abot_shadow_check(kv_cache, "global_end_index", kv_cache["global_end_index"], "abs.local_end.roll")
+                        local_end_index = kv_cache["local_end_index"] + cache_current_end - \
+                                          kv_cache["global_end_index"] - num_evicted_tokens
                         local_start_index = local_end_index - num_new_tokens
                     else:
-                        local_end_index = kv_cache["local_end_index"].item() + cache_current_end - kv_cache[
-                            "global_end_index"].item()
+                        _abot_shadow_check(kv_cache, "local_end_index", kv_cache["local_end_index"], "abs.local_end.noroll")
+                        _abot_shadow_check(kv_cache, "global_end_index", kv_cache["global_end_index"], "abs.local_end.noroll")
+                        local_end_index = kv_cache["local_end_index"] + cache_current_end - kv_cache[
+                            "global_end_index"]
                         local_start_index = local_end_index - num_new_tokens
 
                     # 只在即将越界时打印；正常路径无输出。
@@ -1130,8 +1183,10 @@ class CausalWanSelfAttention(nn.Module):
                         attn_k = kv_cache["k"][:, :local_end_index]
                         attn_v = kv_cache["v"][:, :local_end_index]
                     x = attention(roped_query, attn_k, attn_v)
-                    kv_cache["global_end_index"].fill_(cache_current_end)
-                    kv_cache["local_end_index"].fill_(local_end_index)
+                    kv_cache["global_end_index"] = int(cache_current_end)
+                    kv_cache["local_end_index"] = int(local_end_index)
+                    _abot_shadow_fill(kv_cache, "global_end_index", cache_current_end, q.device)
+                    _abot_shadow_fill(kv_cache, "local_end_index", local_end_index, q.device)
             except Exception as e:
                 if _is_checkpoint_stop_signal(e):
                     raise
